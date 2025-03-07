@@ -139,3 +139,98 @@ for (i = 0; i < list.length; i++) {
 // Print a message when done
 print("Processing complete!");
 /
+######################################## panel making in R
+library(magick)
+library(ggplot2)
+library(cowplot)
+library(grid)  # Load grid for rasterGrob()
+library(gridExtra)
+
+# Define file names (ensure they are strings)
+file_names <- c(
+  "1_halo_cnt_merge.tif",
+  "1_halo_z8_cnt_merge.tif",
+  "1_sor_1hr_halo_cnt_merge.tif",
+  "1_sor_halo_z8_cnt_merge.tif",
+  "1_sor_halo_z8_cn_removed_30minst_merge.tif",
+  "2_halo_cnt_merge.tif",
+  "2_halo_z8_cnt_merge.tif",
+  "2_sor_1hr_halo_cnt_merge.tif",
+  "2_sor_halo_z8_cnt_merge.tif",
+  "2_sor_halo_z8_cn_removed_30minst_merge.tif",
+  "3_halo_cnt_merge.tif",
+  "3_halo_z8_cnt_merge.tif",
+  "3_sor_1hr_halo_cnt_merge.tif",
+  "3_sor_halo_z8_cnt_merge.tif",
+  "3_sor_halo_z8_cn_removed_30minst_merge.tif",
+  "4_halo_cnt_merge.tif",
+  "4_halo_z8_cnt_merge.tif",
+  "4_sor_1hr_halo_cnt_merge.tif",
+  "4_sor_halo_z8_cnt_merge.tif",
+  "4_sor_halo_z8_cn_removed_30minst_merge.tif",
+  "5_halo_cnt_merge.tif",
+  "5_halo_z8_cnt_merge.tif",
+  "5_sor_1hr_halo_cnt_merge.tif",
+  "5_sor_halo_z8_cnt_merge.tif",
+  "5_sor_halo_z8_cn_removed_30minst_merge.tif"
+)
+
+# Directory containing input files
+input_dir <- "./"  # Update this path if necessary
+
+# Ensure the input directory exists
+if (!dir.exists(input_dir)) {
+  stop("Input directory does not exist:", input_dir)
+}
+
+# Create a list to store ggplot images
+plot_list <- list()
+
+# Read images and store them as ggplot objects
+for (file_name in file_names) {
+  input_path <- file.path(input_dir, file_name)
+  
+  # Check if file exists
+  if (!file.exists(input_path)) {
+    warning("File does not exist:", input_path)
+    next
+  }
+  
+  # Read image
+  img <- image_read(input_path)
+  
+  # Convert image to raster for ggplot
+  img_gg <- rasterGrob(as.raster(img), interpolate = TRUE)
+  
+  # Create a ggplot object with filename as title
+  p <- ggplot() +
+    annotation_custom(img_gg, xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf) +
+    ggtitle(file_name) +
+    theme_void() +  # Remove background/grid
+    theme(
+      plot.title = element_text(
+        hjust = 0.5,  # Center the title
+        vjust = 0,    # Adjust vertical position (0 = bottom, 1 = top)
+        size = 6,     # Set font size
+        face = "bold", # Set font style (bold)
+        color = "black" # Set font color
+      ),
+      plot.margin = margin(b = 20, unit = "pt")  # Add margin at the bottom for the title
+    )
+  
+  # Store the plot
+  plot_list[[file_name]] <- p
+}
+
+# Arrange images in a panel (5 columns)
+panel <- plot_grid(plotlist = plot_list, ncol = 5, align = "hv")
+
+# Show the final panel
+#print(panel)
+
+# Save the final panel as an SVG file
+output_svg <- file.path(input_dir, "1_final_panel_1_5.svg")
+ggsave(output_svg, panel, width = 8, height = 9, dpi = 300)
+
+# Print a message when done
+print(paste("Final panel saved as:", output_svg))
