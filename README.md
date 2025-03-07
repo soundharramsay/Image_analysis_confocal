@@ -65,7 +65,7 @@ list = getFileList(input_dir);
 // Loop through each file
 for (i = 0; i < list.length; i++) {
     // Check if the file is a .tiff file and contains "_647" in its name
-    if (endsWith(list[i], ".tiff") && indexOf(list[i], "_647") != -1) {
+    if (endsWith(list[i], ".tif") && indexOf(list[i], "_647_magenta") != -1) {
         // Open the image
         open(input_dir + list[i]);
 
@@ -76,7 +76,7 @@ for (i = 0; i < list.length; i++) {
         }
 
         // Apply the "Cyan Hot" lookup table
-        run("Cyan Hot");
+        run("Magenta Hot");
 
         // Save the processed image with a new name
         new_name = replace(list[i], ".tiff", "_magenta.tif");
