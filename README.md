@@ -1,7 +1,10 @@
 # bioconvert_czi_2_seperate_tiff
-bioconvert_czi_2_seperate_tiff
+1###### bioconvert_czi_2_seperate_tiff
+2######imagej macro recoloring 647 >>> magenta
+3##### imagej merging DAPI+magenta
 
-######################################  tiff conversions are good 
+
+######################################  tiff conversions are good  ## Users/soundhar/Desktop/softwares/bftools
 
 #!/bin/bash
 
@@ -123,7 +126,7 @@ for (i = 0; i < list.length; i++) {
 
 // Print a message when done
 print("Processing complete!");
-/
+
 ######################################## panel making in R
 library(magick)
 library(ggplot2)
@@ -219,3 +222,105 @@ ggsave(output_svg, panel, width = 8, height = 9, dpi = 300)
 
 # Print a message when done
 print(paste("Final panel saved as:", output_svg))
+
+
+################################ mergeing 647 and g3bp1 
+// Define the input and output directories
+input_dir = "/Users/soundhar/Desktop/20_u20s_stable_g3bp1/poly_I_C_5OONGML_4HRS/processed_tiff/";
+output_dir = "/Users/soundhar/Desktop/20_u20s_stable_g3bp1/poly_I_C_5OONGML_4HRS/processed_tiff/";
+
+// Get a list of all files in the input directory
+list = getFileList(input_dir);
+
+// Loop through each file
+for (i = 0; i < list.length; i++) {
+    // Check if the file is a "_647_magenta.tif" file
+    if (endsWith(list[i], "_647_magenta.tif")) {
+        // Extract the base name (e.g., "10_halo_cnt" from "10_halo_cnt_647_magenta.tif")
+        base_name = replace(list[i], "_647_magenta.tif", "");
+
+        // Construct the corresponding G3BP1 file name
+        g3bp1_file = base_name + "_G3BP1.tiff";
+
+        // Check if the G3BP1 file exists
+        if (File.exists(input_dir + g3bp1_file)) {
+            // Open the 647_magenta image
+            open(input_dir + list[i]);
+
+            // Open the G3BP1 image
+            open(input_dir + g3bp1_file);
+
+            // Merge the two images
+            run("Merge Channels...", "c1=" + g3bp1_file + " c2=" + list[i] + " create keep");
+
+            // Flatten the merged image to create a single-page TIFF
+            run("Flatten");
+
+            // Save the flattened image with the desired output name
+            merge_name = base_name + "_merge_647_g3bp1.tif";
+            saveAs("Tiff", output_dir + merge_name);
+
+            // Close all images
+            close();
+            close();
+        } else {
+            print("G3BP1 file not found for: " + list[i]);
+        }
+    }
+}
+
+// Print a message when done
+print("Processing complete!");
+
+############################## merging 647_dapi_g3bp1
+// Define the input and output directories
+input_dir = "/Users/soundhar/Desktop/20_u20s_stable_g3bp1/poly_I_C_5OONGML_4HRS/processed_tiff/";
+output_dir = "/Users/soundhar/Desktop/20_u20s_stable_g3bp1/poly_I_C_5OONGML_4HRS/processed_tiff/";
+
+// Get a list of all files in the input directory
+list = getFileList(input_dir);
+
+// Loop through each file
+for (i = 0; i < list.length; i++) {
+    // Check if the file is a "_647_magenta.tif" file
+    if (endsWith(list[i], "_647_magenta.tif")) {
+        // Extract the base name (e.g., "10_halo_cnt" from "10_halo_cnt_647_magenta.tif")
+        base_name = replace(list[i], "_647_magenta.tif", "");
+
+        // Construct the corresponding DAIPI and G3BP1 file names
+        daipi_file = base_name + "_DAIPI.tiff";
+        g3bp1_file = base_name + "_G3BP1.tiff";
+
+        // Check if the DAIPI and G3BP1 files exist
+        if (File.exists(input_dir + daipi_file) && File.exists(input_dir + g3bp1_file)) {
+            // Open the 647_magenta image
+            open(input_dir + list[i]);
+
+            // Open the DAIPI image
+            open(input_dir + daipi_file);
+
+            // Open the G3BP1 image
+            open(input_dir + g3bp1_file);
+
+            // Merge the three images
+            run("Merge Channels...", "c1=" + daipi_file + " c2=" + list[i] + " c3=" + g3bp1_file + " create keep");
+
+            // Flatten the merged image to create a single-page TIFF
+            run("Flatten");
+
+            // Save the flattened image with the desired output name
+            merge_name = base_name + "_DAPI_647_g3bp1.tif";
+            saveAs("Tiff", output_dir + merge_name);
+
+            // Close all images
+            close();
+            close();
+            close();
+        } else {
+            print("DAIPI or G3BP1 file not found for: " + list[i]);
+        }
+    }
+}
+
+// Print a message when done
+print("Processing complete!");
