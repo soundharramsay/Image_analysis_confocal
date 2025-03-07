@@ -89,3 +89,48 @@ for (i = 0; i < list.length; i++) {
 
 // Print a message when done
 print("Processing complete!");
+
+##################################################### merging files DAPI and magenta 
+// Define the input and output directories
+input_dir = "/Users/sr/Desktop/18_u20s_stable_halo_z8_stressor_feb18/sorbitol_working/output_tiff/";
+output_dir = "/Users/sr/Desktop/18_u20s_stable_halo_z8_stressor_feb18/sorbitol_working/output_tiff/";
+
+// Get a list of all files in the input directory
+list = getFileList(input_dir);
+
+// Loop through each file
+for (i = 0; i < list.length; i++) {
+    // Check if the file is a "_647_magenta.tif" file
+    if (endsWith(list[i], "_647_magenta.tif")) {
+        // Extract the base name (e.g., "10_halo_cnt" from "10_halo_cnt_647_magenta.tif")
+        base_name = replace(list[i], "_647_magenta.tif", "");
+
+        // Construct the corresponding DAIPI file name
+        daipi_file = base_name + "_DAIPI.tiff";
+
+        // Check if the DAIPI file exists
+        if (File.exists(input_dir + daipi_file)) {
+            // Open the 647_magenta image
+            open(input_dir + list[i]);
+
+            // Open the DAIPI image
+            open(input_dir + daipi_file);
+
+            // Merge the two images
+            run("Merge Channels...", "c3=" + daipi_file + " c6=" + list[i] + " create keep");
+
+            // Save the merged image
+            merge_name = base_name + "_merge.tif";
+            saveAs("Tiff", output_dir + merge_name);
+
+            // Close all images
+            close();
+            close();
+        } else {
+            print("DAIPI file not found for: " + list[i]);
+        }
+    }
+}
+
+// Print a message when done
+print("Processing complete!");
