@@ -91,6 +91,7 @@ for (i = 0; i < list.length; i++) {
 print("Processing complete!");
 
 ##################################################### merging files DAPI and magenta 
+
 // Define the input and output directories
 input_dir = "/Users/sr/Desktop/18_u20s_stable_halo_z8_stressor_feb18/sorbitol_working/output_tiff/";
 output_dir = "/Users/sr/Desktop/18_u20s_stable_halo_z8_stressor_feb18/sorbitol_working/output_tiff/";
@@ -119,7 +120,10 @@ for (i = 0; i < list.length; i++) {
             // Merge the two images
             run("Merge Channels...", "c3=" + daipi_file + " c6=" + list[i] + " create keep");
 
-            // Save the merged image
+            // Flatten the merged image to create a single-page TIFF
+            run("Flatten");
+
+            // Save the flattened image
             merge_name = base_name + "_merge.tif";
             saveAs("Tiff", output_dir + merge_name);
 
@@ -134,3 +138,4 @@ for (i = 0; i < list.length; i++) {
 
 // Print a message when done
 print("Processing complete!");
+/
