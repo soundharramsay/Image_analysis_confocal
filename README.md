@@ -51,3 +51,41 @@ for file in "$input_dir"/*.czi; do
 done
 
 echo "All files have been converted."
+
+
+
+###################################################### macro script for color conversion
+// Define the input and output directories
+input_dir = "/Users/sr/Desktop/18_u20s_stable_halo_z8_stressor_feb18/sorbitol_working/output_tiff/";
+output_dir = "/Users/sr/Desktop/18_u20s_stable_halo_z8_stressor_feb18/sorbitol_working/output_tiff/";
+
+// Get a list of all .tiff files in the input directory
+list = getFileList(input_dir);
+
+// Loop through each file
+for (i = 0; i < list.length; i++) {
+    // Check if the file is a .tiff file and contains "_647" in its name
+    if (endsWith(list[i], ".tiff") && indexOf(list[i], "_647") != -1) {
+        // Open the image
+        open(input_dir + list[i]);
+
+        // Check if the image is RGB
+        if (bitDepth == 24) {
+            // Convert RGB image to grayscale
+            run("8-bit");
+        }
+
+        // Apply the "Cyan Hot" lookup table
+        run("Cyan Hot");
+
+        // Save the processed image with a new name
+        new_name = replace(list[i], ".tiff", "_magenta.tif");
+        saveAs("Tiff", output_dir + new_name);
+
+        // Close the image
+        close();
+    }
+}
+
+// Print a message when done
+print("Processing complete!");
