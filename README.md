@@ -2,6 +2,10 @@
 1###### bioconvert_czi_2_seperate_tiff
 2######imagej macro recoloring 647 >>> magenta
 3##### imagej merging DAPI+magenta
+4##### panel making in R
+5#### mergeing 647 and g3bp1 
+6#### merging 647_dapi_g3bp1
+7######color conversion with intensity change 
 
 
 ######################################  tiff conversions are good  ## Users/soundhar/Desktop/softwares/bftools
@@ -324,3 +328,43 @@ for (i = 0; i < list.length; i++) {
 
 // Print a message when done
 print("Processing complete!");
+
+
+################################################### color conversion with intensity change 
+
+
+// Define the input directory containing the TIFF files
+input_dir = "/Users/soundhar/Desktop/21_u20s_stable_high_low_sorbitol_hexandiol/z8_low_matched/processed_tiff/";
+
+// List all TIFF files in the input directory
+list = getFileList(input_dir);
+
+// Loop through each file in the directory
+for (i = 0; i < list.length; i++) {
+    // Check if the file ends with "_647.tiff"
+    if (endsWith(list[i], "_647.tiff")) {
+        // Open the image
+        open(input_dir + list[i]);
+
+        // Get the image title (filename without extension)
+        title = getTitle();
+        new_title = replace(title, ".tiff", "_magenta.tiff");
+
+        // Apply the "Magenta Hot" LUT
+        run("Magenta Hot");
+
+        // Set the brightness/contrast (optional)
+        setMinAndMax(0, 160);
+        run("Apply LUT");
+
+        // Save the processed image in the same directory
+        saveAs("Tiff", input_dir + new_title);
+
+        // Close the image
+        close();
+    }
+}
+
+// Print a message when done
+print("Processing complete. Processed images saved in: " + input_dir);
+
