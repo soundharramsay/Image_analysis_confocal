@@ -410,3 +410,33 @@ for (i = 0; i < list.length; i++) {
 }
 
 print("All files processed.");
+
+############ 
+#################
+####################### multi-page tiff to single page seperate tiff
+
+#!/bin/bash
+
+# Input directory containing .tiff files
+input_dir="./"
+
+# Output directory for separated channels
+output_dir="./"
+
+# Create output directory if it doesn't exist
+mkdir -p "$output_dir"
+
+# Loop through all .tiff files in the input directory
+for file in "$input_dir"/*.tif; do
+    # Get the base name of the file (without extension)
+    base_name=$(basename "$file" .tif)
+
+    # Split the channels using bfconvert
+    /Users/soundhar/Desktop/softwares/bftools/bfconvert -channel 0 "$file" "$output_dir/${base_name}_dapi.tiff"
+    /Users/soundhar/Desktop/softwares/bftools/bfconvert -channel 1 "$file" "$output_dir/${base_name}_mcherry.tiff"
+    /Users/soundhar/Desktop/softwares/bftools/bfconvert -channel 2 "$file" "$output_dir/${base_name}_magenta.tiff"
+
+    echo "Processed: $file"
+done
+
+echo "All files processed."
