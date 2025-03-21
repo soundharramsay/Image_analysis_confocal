@@ -368,3 +368,45 @@ for (i = 0; i < list.length; i++) {
 // Print a message when done
 print("Processing complete. Processed images saved in: " + input_dir);
 
+##################################################################################
+##############################################################################################################  z-stack >>>> max projection >>>>tiff conversion 
+
+
+##### z-stack to tiff 
+
+// Define input and output directories
+input_dir = "/Users/soundhar/Desktop/24_u20s_idr_muts/idr_mutants_sorbitol_stress/";
+output_dir = "/Users/soundhar/Desktop/24_u20s_idr_muts/idr_mutants_sorbitol_stress/processed_tiff/";
+
+// Create output directory if it doesn't exist
+File.makeDirectory(output_dir);
+
+// Get a list of all .czi files in the input directory
+list = getFileList(input_dir);
+
+// Loop through each file
+for (i = 0; i < list.length; i++) {
+    if (endsWith(list[i], ".czi")) {
+        // Open the .czi file
+        open(input_dir + list[i]);
+
+        // Get the base name of the file (without extension)
+        base_name = File.nameWithoutExtension;
+
+        // Perform maximum intensity projection
+        run("Z Project...", "projection=[Max Intensity]");
+
+        // Apply the Magenta Hot LUT
+        run("Magenta Hot");
+
+        // Save the processed image
+        saveAs("Tiff", output_dir + "MAX_" + base_name + ".tif");
+
+        // Close the image
+        close();
+
+        print("Processed: " + list[i]);
+    }
+}
+
+print("All files processed.");
