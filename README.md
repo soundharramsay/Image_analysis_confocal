@@ -440,3 +440,44 @@ for file in "$input_dir"/*.tif; do
 done
 
 echo "All files processed."
+
+################################################################### if u have three tiff of DAPI and Magenta, but DAPI is in wrong color. This script change the color of DAPI to blue and create a merged DAPI and magenta 
+// Set the input directory
+inputDir = "/Users/soundhar/Desktop/24_u20s_idr_muts/z8_low_sorbitol_expo_recovery_time/processed/";
+
+// Get all files in the directory
+list = getFileList(inputDir);
+
+// Process files that match the pattern
+for (i = 0; i < list.length; i++) {
+    if (endsWith(list[i], "dapi.tiff")) {
+        // Get base filename
+        baseName = substring(list[i], 0, lastIndexOf(list[i], "_dapi.tiff"));
+        
+        // Construct magenta filename
+        magentaFile = inputDir + baseName + "_magenta.tiff";
+        
+        // Check if matching magenta file exists
+        if (File.exists(magentaFile)) {
+            // Process the pair
+            open(inputDir + list[i]);
+            run("Blue");
+            open(magentaFile);
+            run("Merge Channels...", "c3=" + list[i] + " c6=" + baseName + "_magenta.tiff keep");
+            
+            // Save merged image
+            outputName = inputDir + baseName + "_dapi_magenta_merge.tiff";
+            saveAs("Tiff", outputName);
+            
+            // Close windows
+            close();
+            close();
+            selectImage(list[i]);
+            close();
+            
+            print("Processed: " + baseName);
+        }
+    }
+}
+
+print("Processing complete!");
