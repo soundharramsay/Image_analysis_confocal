@@ -9,6 +9,7 @@
 
 
 ######################################  tiff conversions are good  ## Users/soundhar/Desktop/softwares/bftools
+#/Users/soundhar/Desktop/softwares/bftools
 
 #!/bin/bash
 
@@ -435,6 +436,7 @@ for file in "$input_dir"/*.tif; do
     /Users/soundhar/Desktop/softwares/bftools/bfconvert -channel 0 "$file" "$output_dir/${base_name}_dapi.tiff"
     /Users/soundhar/Desktop/softwares/bftools/bfconvert -channel 1 "$file" "$output_dir/${base_name}_mcherry.tiff"
     /Users/soundhar/Desktop/softwares/bftools/bfconvert -channel 2 "$file" "$output_dir/${base_name}_magenta.tiff"
+    /Users/soundhar/Desktop/softwares/bftools/bfconvert -channel 3 "$file" "$output_dir/${base_name}_g3bp1.tiff"
 
     echo "Processed: $file"
 done
@@ -481,3 +483,58 @@ for (i = 0; i < list.length; i++) {
 }
 
 print("Processing complete!");
+
+
+######################### use this on g3bp1 it will take DAPI and gebp1 tiff file do color chnage and merge them and save 
+// Set input and output directories
+inputDir = "/Users/soundhar/Desktop/26_g3bp_if_u20s_z8_low/btach1_stressor_1hrs_exposure/processed_tiff/";
+outputDir = inputDir + "merged/";
+File.makeDirectory(outputDir);
+
+// Get all files
+fileList = getFileList(inputDir);
+print("Found " + fileList.length + " files");
+
+// Process files
+for (i = 0; i < fileList.length; i++) {
+    if (endsWith(fileList[i], "_dapi.tiff")) {
+        // Get base name
+        baseName = substring(fileList[i], 0, lastIndexOf(fileList[i], "_dapi.tiff"));
+        
+        // Find matching G3BP1 file
+        g3bpFile = inputDir + baseName + "_g3bp1.tiff";
+        
+        if (File.exists(g3bpFile)) {
+            print("Processing pair: " + fileList[i] + " + " + baseName + "_g3bp1.tiff");
+            
+            // Open both images
+            open(inputDir + fileList[i]);
+            open(g3bpFile);
+            
+            // Apply colors
+            selectImage(baseName + "_g3bp1.tiff");
+            run("Green");
+            
+            selectImage(fileList[i]);
+            setForegroundColor(12, 0, 12); // Magenta color for DAPI
+            run("Blue");
+            
+            // Merge channels
+            run("Merge Channels...", 
+                "c2=" + baseName + "_g3bp1.tiff " +
+                "c3=" + fileList[i] + " create");
+            
+            // Create output name by removing "_g3bp1" from baseName
+            outputBase = baseName.replace("_g3bp1", "");
+            outputName = outputDir + outputBase + "merge_dapi_g3bp1.tiff";
+            saveAs("Tiff", outputName);
+            
+            // Close all windows
+            close("*");
+        } else {
+            print("No matching G3BP1 file found for: " + fileList[i]);
+        }
+    }
+}
+
+print("=== Processing complete ===");
