@@ -443,6 +443,8 @@ done
 
 echo "All files processed."
 
+
+
 ################################################################### if u have three tiff of DAPI and Magenta, but DAPI is in wrong color. This script change the color of DAPI to blue and create a merged DAPI and magenta 
 // Set the input directory
 inputDir = "/Users/soundhar/Desktop/24_u20s_idr_muts/z8_low_sorbitol_expo_recovery_time/processed/";
@@ -485,56 +487,152 @@ for (i = 0; i < list.length; i++) {
 print("Processing complete!");
 
 
-######################### use this on g3bp1 it will take DAPI and gebp1 tiff file do color chnage and merge them and save 
-// Set input and output directories
-inputDir = "/Users/soundhar/Desktop/26_g3bp_if_u20s_z8_low/btach1_stressor_1hrs_exposure/processed_tiff/";
-outputDir = inputDir + "merged/";
-File.makeDirectory(outputDir);
 
-// Get all files
-fileList = getFileList(inputDir);
-print("Found " + fileList.length + " files");
 
-// Process files
-for (i = 0; i < fileList.length; i++) {
-    if (endsWith(fileList[i], "_dapi.tiff")) {
-        // Get base name
-        baseName = substring(fileList[i], 0, lastIndexOf(fileList[i], "_dapi.tiff"));
-        
-        // Find matching G3BP1 file
-        g3bpFile = inputDir + baseName + "_g3bp1.tiff";
-        
-        if (File.exists(g3bpFile)) {
-            print("Processing pair: " + fileList[i] + " + " + baseName + "_g3bp1.tiff");
-            
-            // Open both images
-            open(inputDir + fileList[i]);
-            open(g3bpFile);
-            
-            // Apply colors
-            selectImage(baseName + "_g3bp1.tiff");
-            run("Green");
-            
-            selectImage(fileList[i]);
-            setForegroundColor(12, 0, 12); // Magenta color for DAPI
-            run("Blue");
-            
-            // Merge channels
-            run("Merge Channels...", 
-                "c2=" + baseName + "_g3bp1.tiff " +
-                "c3=" + fileList[i] + " create");
-            
-            // Create output name by removing "_g3bp1" from baseName
-            outputBase = baseName.replace("_g3bp1", "");
-            outputName = outputDir + outputBase + "merge_dapi_g3bp1.tiff";
-            saveAs("Tiff", outputName);
-            
-            // Close all windows
-            close("*");
-        } else {
-            print("No matching G3BP1 file found for: " + fileList[i]);
-        }
+###################################################################
+###################################################################
+################################################################### for processing g3bp1 IF images 
+
+################################### z-stack to tiff
+// Define input and output directories
+input_dir = "/Users/soundhar/Desktop/26_g3bp_if_u20s_z8_low/btach1_stressor_1hrs_exposure/";
+output_dir = "/Users/soundhar/Desktop/26_g3bp_if_u20s_z8_low/btach1_stressor_1hrs_exposure/processed_tiff/";
+
+// Create output directory if it doesn't exist
+File.makeDirectory(output_dir);
+
+// Get a list of all files in the input directory
+list = getFileList(input_dir);
+
+// Loop through each file
+for (i = 0; i < list.length; i++) {
+    if (endsWith(list[i], ".czi")) {
+        // Open the .czi file
+        path = input_dir + list[i];
+        open(path);
+
+        // Get the base name of the file (without extension)
+        base_name = File.nameWithoutExtension;
+
+        // Perform maximum intensity projection
+        run("Z Project...", "projection=[Max Intensity]");
+
+        // Apply the Magenta Hot LUT
+        run("Magenta Hot");
+
+        // Save the processed image
+        saveAs("Tiff", output_dir + "MAX_" + base_name + ".tif");
+
+        // Close all windows
+        close("*");
+
+        print("Processed: " + list[i]);
     }
 }
 
-print("=== Processing complete ===");
+print("All files processed.");
+
+############################################ multipage to single page 
+#!/bin/bash
+
+# Input directory containing .tiff files
+input_dir="./processed_tiff"
+
+# Output directory for separated channels
+output_dir="./processed_tiff"
+
+# Create output directory if it doesn't exist
+mkdir -p "$output_dir"
+
+# Loop through all .tiff files in the input directory
+for file in "$input_dir"/*.tif; do
+    # Get the base name of the file (without extension)
+    base_name=$(basename "$file" .tif)
+
+    # Split the channels using bfconvert
+    /Users/soundhar/Desktop/softwares/bftools/bfconvert -channel 0 "$file" "$output_dir/${base_name}_dapi.tiff"
+    /Users/soundhar/Desktop/softwares/bftools/bfconvert -channel 1 "$file" "$output_dir/${base_name}_mcherry.tiff"
+    /Users/soundhar/Desktop/softwares/bftools/bfconvert -channel 2 "$file" "$output_dir/${base_name}_magenta.tiff"
+    /Users/soundhar/Desktop/softwares/bftools/bfconvert -channel 3 "$file" "$output_dir/${base_name}_g3bp1.tiff"
+
+    echo "Processed: $file"
+done
+
+echo "All files processed."
+
+
+
+######################### use this on g3bp1 it will take DAPI and gebp1 tiff file do color chnage and merge them and save 
+// Set input/output directories
+inputDir = "/Users/soundhar/Desktop/26_g3bp_if_u20s_z8_low/btach1_stressor_1hrs_exposure/processed_tiff/";
+outputDir = inputDir + "green_merged/";
+File.makeDirectory(outputDir);
+
+// Get list of files in the input directory
+list = getFileList(inputDir);
+
+// Loop through files
+for (i = 0; i < list.length; i++) {
+    if (endsWith(list[i], "_dapi.tiff")) {
+        // Extract base name for file pairing
+        base = substring(list[i], 0, lastIndexOf(list[i], "_dapi.tiff"));
+        g3bpFile = inputDir + base + "_g3bp1.tiff";
+        
+        if (File.exists(g3bpFile)) {
+            // Open DAPI image
+            open(inputDir + list[i]);
+            dapiImage = list[i]; // Store filename
+            selectWindow(dapiImage);
+            run("Blue"); // Set DAPI channel to Blue
+            
+            // Open G3BP1 image
+            open(g3bpFile);
+            g3bpImage = base + "_g3bp1.tiff";
+            selectWindow(g3bpImage);
+            run("Green"); // Set G3BP1 channel to Green
+            
+            // Merge channels: DAPI (blue) = c1, G3BP1 (green) = c2
+            run("Merge Channels...", "c1=" + dapiImage + " c2=" + g3bpImage + " create");
+
+            // Flatten composite image to RGB (single-page)
+            run("Flatten");
+
+            // Save as single-page TIFF
+            saveAs("Tiff", outputDir + base + "_green_merged.tiff");
+
+            // Close all images
+            close("*");
+
+            // Print confirmation
+            print("Processed: " + base);
+        }
+    }
+}
+print("Done! Green-merged files in: " + outputDir);
+
+############################################ g3bp1 to green color 
+// Set input directory
+inputDir = "/Users/soundhar/Desktop/26_g3bp_if_u20s_z8_low/btach1_stressor_1hrs_exposure/processed_tiff/";
+list = getFileList(inputDir);
+
+// Loop through all files
+for (i = 0; i < list.length; i++) {
+    if (endsWith(list[i], "_g3bp1.tiff")) {
+        fullPath = inputDir + list[i];
+
+        // Open the image
+        open(fullPath);
+
+        // Apply green LUT
+        run("Green");
+
+        // Save as TIFF (overwrite original file)
+        saveAs("Tiff", fullPath);
+
+        // Close the image
+        close();
+        
+        print("Processed: " + list[i]);
+    }
+}
+print("Done! All _g3bp1.tiff files colorized green and saved.");
